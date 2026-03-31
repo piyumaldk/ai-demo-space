@@ -156,7 +156,7 @@ const Dashboard: React.FC = () => {
             variant="h6"
             sx={{ fontWeight: 700, fontSize: "1.3rem", color: "text.primary" }}
           >
-            WSO2 AI Gateway Demo
+            WSO2AI Demo
           </Typography>
           <Typography variant="caption" sx={{ color: "text.secondary", fontSize: "0.8rem" }}>
             WSO2 API Manager — Guardrails
