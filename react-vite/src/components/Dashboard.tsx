@@ -1,15 +1,15 @@
 import React, { useEffect, useState, useRef } from "react";
 import {
   Box,
-  Drawer,
   Typography,
   Select,
   MenuItem,
   Chip,
+  Drawer,
   List,
   ListItemButton,
-  ListItemText,
   ListItemIcon,
+  ListItemText,
   Divider,
   TextField,
   IconButton,
@@ -17,12 +17,21 @@ import {
   Button,
   CircularProgress,
   Stack,
+  AppBar,
+  Toolbar,
   alpha,
-} from "@mui/material";
-import SendIcon from "@mui/icons-material/Send";
-import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
-import SmartToyOutlinedIcon from "@mui/icons-material/SmartToyOutlined";
-import PersonOutlinedIcon from "@mui/icons-material/PersonOutlined";
+  useTheme,
+} from "@wso2/oxygen-ui";
+import {
+  Send,
+  Trash2,
+  Bot,
+  User,
+  Shield,
+  Zap,
+  Lock,
+  Ruler,
+} from "@wso2/oxygen-ui-icons-react";
 import { GUARDRAIL_APIS } from "../config/guardrails";
 import type { GuardrailApi } from "../config/guardrails";
 import { sendChat, checkGatewayStatus } from "../api/client";
@@ -36,7 +45,15 @@ interface DisplayMessage {
   timestamp: Date;
 }
 
+const GUARDRAIL_ICONS: Record<string, React.ReactNode> = {
+  APIM4OMINI: <Zap size={18} />,
+  APIM4OMINIPIIMASKINGREGEX: <Lock size={18} />,
+  APIM4OMINIURLGUARDRAIL: <Shield size={18} />,
+  APIM4OMINIWORDCOUNTGUARDRAIL: <Ruler size={18} />,
+};
+
 const Dashboard: React.FC = () => {
+  const theme = useTheme();
   const [gatewayConnected, setGatewayConnected] = useState(false);
   const [model] = useState("gpt-4o-mini");
   const [selectedGuardrail, setSelectedGuardrail] = useState<GuardrailApi>(
@@ -85,16 +102,13 @@ const Dashboard: React.FC = () => {
         chatMessages
       );
 
-      let content: string;
-      if (res.error) {
-        content = `⚠️ ${res.content}`;
-      } else {
-        content = res.content;
-      }
-
       setMessages((prev) => [
         ...prev,
-        { role: "assistant", content, timestamp: new Date() },
+        {
+          role: "assistant",
+          content: res.error ? `⚠️ ${res.content}` : res.content,
+          timestamp: new Date(),
+        },
       ]);
     } catch (err: unknown) {
       const errorMsg = err instanceof Error ? err.message : "Unknown error";
@@ -116,18 +130,16 @@ const Dashboard: React.FC = () => {
     setMessages([
       {
         role: "assistant",
-        content: `Switched to ${g.name}.\n\n${g.desc}\n\n*Try the test prompts below to see this guardrail in action.*`,
+        content: `Switched to ${g.name}.\n\n${g.desc}\n\n*Try the test prompts above to see this guardrail in action.*`,
         timestamp: new Date(),
       },
     ]);
   };
 
-  const clearChat = () => {
-    setMessages([]);
-  };
+  const clearChat = () => setMessages([]);
 
   return (
-    <Box sx={{ display: "flex", height: "100vh", bgcolor: "background.default" }}>
+    <Box sx={{ display: "flex", height: "100vh" }}>
       {/* Sidebar */}
       <Drawer
         variant="permanent"
@@ -137,17 +149,18 @@ const Dashboard: React.FC = () => {
           "& .MuiDrawer-paper": {
             width: DRAWER_WIDTH,
             boxSizing: "border-box",
-            bgcolor: "#0d1117",
+            bgcolor: "#0d0d0d",
             borderRight: "1px solid",
-            borderColor: "divider",
-            display: "flex",
-            flexDirection: "column",
+            borderColor: alpha("#fff", 0.08),
           },
         }}
       >
-        {/* Logo */}
+        {/* Logo / Title */}
         <Box sx={{ p: 2.5, pb: 1 }}>
-          <Typography variant="h6" sx={{ color: "#fff", fontWeight: 700, fontSize: "1.1rem" }}>
+          <Typography
+            variant="h6"
+            sx={{ fontWeight: 700, fontSize: "1.1rem", color: "text.primary" }}
+          >
             WSO2 AI Gateway Demo
           </Typography>
           <Typography variant="caption" sx={{ color: "text.secondary", fontSize: "0.7rem" }}>
@@ -160,29 +173,24 @@ const Dashboard: React.FC = () => {
           <Chip
             label={gatewayConnected ? "Gateway connected" : "Gateway disconnected"}
             size="small"
-            sx={{
-              width: "100%",
-              bgcolor: gatewayConnected
-                ? alpha("#3fb950", 0.15)
-                : alpha("#f85149", 0.15),
-              color: gatewayConnected ? "#3fb950" : "#f85149",
-              fontWeight: 600,
-              fontSize: "0.75rem",
-              "& .MuiChip-label": { px: 1 },
-              "&::before": {
-                content: '""',
-                width: 8,
-                height: 8,
-                borderRadius: "50%",
-                bgcolor: gatewayConnected ? "#3fb950" : "#f85149",
-                ml: 1,
-                display: "inline-block",
-              },
-            }}
+            color={gatewayConnected ? "success" : "error"}
+            variant="outlined"
+            sx={{ width: "100%", fontWeight: 600, fontSize: "0.75rem" }}
+            icon={
+              <Box
+                sx={{
+                  width: 8,
+                  height: 8,
+                  borderRadius: "50%",
+                  bgcolor: gatewayConnected ? "success.main" : "error.main",
+                  ml: 1,
+                }}
+              />
+            }
           />
         </Box>
 
-        {/* Model selector */}
+        {/* Model Selector */}
         <Box sx={{ px: 2.5, py: 1 }}>
           <Typography
             variant="caption"
@@ -194,31 +202,24 @@ const Dashboard: React.FC = () => {
             value={model}
             size="small"
             fullWidth
-            sx={{
-              bgcolor: alpha("#fff", 0.05),
-              color: "#58a6ff",
-              fontSize: "0.8rem",
-              fontWeight: 600,
-              borderRadius: 2,
-              "& .MuiOutlinedInput-notchedOutline": {
-                borderColor: alpha("#fff", 0.1),
-              },
-              "&:hover .MuiOutlinedInput-notchedOutline": {
-                borderColor: alpha("#fff", 0.2),
-              },
-            }}
+            sx={{ fontSize: "0.8rem", fontWeight: 600, borderRadius: 2 }}
           >
             <MenuItem value="gpt-4o-mini">gpt-4o-mini</MenuItem>
           </Select>
         </Box>
 
-        <Divider sx={{ my: 1.5, borderColor: "divider" }} />
+        <Divider sx={{ my: 1.5 }} />
 
-        {/* Guardrails */}
+        {/* Guardrails List */}
         <Box sx={{ px: 2.5, pb: 1 }}>
           <Typography
             variant="caption"
-            sx={{ color: "text.secondary", fontWeight: 700, textTransform: "uppercase", letterSpacing: 1 }}
+            sx={{
+              color: "text.secondary",
+              fontWeight: 700,
+              textTransform: "uppercase",
+              letterSpacing: 1,
+            }}
           >
             Guardrails
           </Typography>
@@ -236,30 +237,23 @@ const Dashboard: React.FC = () => {
                 py: 1,
                 px: 1.5,
                 "&.Mui-selected": {
-                  bgcolor: alpha("#ff7300", 0.15),
-                  "&:hover": {
-                    bgcolor: alpha("#ff7300", 0.2),
-                  },
+                  bgcolor: alpha(theme.palette.primary.main, 0.15),
+                  "&:hover": { bgcolor: alpha(theme.palette.primary.main, 0.2) },
                 },
                 "&:hover": {
-                  bgcolor: alpha("#fff", 0.05),
+                  bgcolor: alpha(theme.palette.action.hover, 0.08),
                 },
               }}
             >
-              <ListItemIcon sx={{ minWidth: 28 }}>
-                <Typography fontSize="1rem">
-                  {g.name.split(" ")[0]}
-                </Typography>
+              <ListItemIcon sx={{ minWidth: 32, color: "text.secondary" }}>
+                {GUARDRAIL_ICONS[g.id] || <Shield size={18} />}
               </ListItemIcon>
               <ListItemText
-                primary={g.name.split(" ").slice(1).join(" ")}
+                primary={g.name}
                 primaryTypographyProps={{
                   fontSize: "0.82rem",
                   fontWeight: selectedGuardrail.id === g.id ? 600 : 400,
-                  color:
-                    selectedGuardrail.id === g.id
-                      ? "#ff7300"
-                      : "text.primary",
+                  color: selectedGuardrail.id === g.id ? "primary.main" : "text.primary",
                 }}
               />
             </ListItemButton>
@@ -268,28 +262,21 @@ const Dashboard: React.FC = () => {
       </Drawer>
 
       {/* Main Content */}
-      <Box
-        sx={{
-          flex: 1,
-          display: "flex",
-          flexDirection: "column",
-          minWidth: 0,
-        }}
-      >
-        {/* Header */}
+      <Box sx={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0 }}>
+        {/* Guardrail Info Header */}
         <Box
           sx={{
             px: 4,
             py: 2.5,
             borderBottom: "1px solid",
             borderColor: "divider",
-            bgcolor: "#0d1117",
+            bgcolor: "transparent",
           }}
         >
-          <Typography variant="h5" sx={{ color: "#fff", mb: 0.5 }}>
+          <Typography variant="h5" sx={{ fontWeight: 700, mb: 0.5 }}>
             {selectedGuardrail.name}
           </Typography>
-          <Typography variant="body2" sx={{ color: "text.secondary", fontSize: "0.85rem" }}>
+          <Typography variant="body2" color="text.secondary" sx={{ fontSize: "0.85rem" }}>
             {selectedGuardrail.desc}
           </Typography>
           <Typography
@@ -321,17 +308,7 @@ const Dashboard: React.FC = () => {
                   size="small"
                   onClick={() => handleSend(tp.text)}
                   disabled={loading}
-                  sx={{
-                    borderColor: alpha("#fff", 0.12),
-                    color: "text.primary",
-                    fontSize: "0.78rem",
-                    px: 2,
-                    py: 0.8,
-                    "&:hover": {
-                      borderColor: "#ff7300",
-                      bgcolor: alpha("#ff7300", 0.08),
-                    },
-                  }}
+                  sx={{ fontSize: "0.78rem", px: 2, py: 0.8, textTransform: "none" }}
                 >
                   {tp.label}
                 </Button>
@@ -340,15 +317,8 @@ const Dashboard: React.FC = () => {
           </Box>
         </Box>
 
-        {/* Messages */}
-        <Box
-          sx={{
-            flex: 1,
-            overflow: "auto",
-            px: 4,
-            py: 3,
-          }}
-        >
+        {/* Messages Area */}
+        <Box sx={{ flex: 1, overflow: "auto", px: 4, py: 3 }}>
           {messages.length === 0 && (
             <Box
               sx={{
@@ -360,8 +330,8 @@ const Dashboard: React.FC = () => {
                 opacity: 0.5,
               }}
             >
-              <SmartToyOutlinedIcon sx={{ fontSize: 48, mb: 2, color: "text.secondary" }} />
-              <Typography color="text.secondary">
+              <Bot size={48} />
+              <Typography color="text.secondary" sx={{ mt: 2 }}>
                 Select a guardrail and send a message to get started
               </Typography>
             </Box>
@@ -370,13 +340,9 @@ const Dashboard: React.FC = () => {
           {messages.map((msg, idx) => (
             <Box
               key={idx}
-              sx={{
-                display: "flex",
-                gap: 1.5,
-                mb: 2.5,
-                alignItems: "flex-start",
-              }}
+              sx={{ display: "flex", gap: 1.5, mb: 2.5, alignItems: "flex-start" }}
             >
+              {/* Avatar */}
               <Box
                 sx={{
                   width: 32,
@@ -387,22 +353,19 @@ const Dashboard: React.FC = () => {
                   justifyContent: "center",
                   bgcolor:
                     msg.role === "user"
-                      ? alpha("#ff7300", 0.15)
-                      : alpha("#40e0d0", 0.15),
+                      ? alpha(theme.palette.primary.main, 0.15)
+                      : alpha(theme.palette.secondary.main, 0.15),
                   flexShrink: 0,
                   mt: 0.5,
                 }}
               >
                 {msg.role === "user" ? (
-                  <PersonOutlinedIcon
-                    sx={{ fontSize: 18, color: "#ff7300" }}
-                  />
+                  <User size={16} color={theme.palette.primary.main} />
                 ) : (
-                  <SmartToyOutlinedIcon
-                    sx={{ fontSize: 18, color: "#40e0d0" }}
-                  />
+                  <Bot size={16} color={theme.palette.secondary.main} />
                 )}
               </Box>
+              {/* Bubble */}
               <Paper
                 elevation={0}
                 sx={{
@@ -410,46 +373,34 @@ const Dashboard: React.FC = () => {
                   py: 1.5,
                   bgcolor:
                     msg.role === "user"
-                      ? alpha("#ff7300", 0.06)
-                      : alpha("#fff", 0.03),
+                      ? alpha(theme.palette.primary.main, 0.06)
+                      : alpha(theme.palette.action.hover, 0.4),
                   border: "1px solid",
                   borderColor:
                     msg.role === "user"
-                      ? alpha("#ff7300", 0.15)
-                      : alpha("#fff", 0.06),
+                      ? alpha(theme.palette.primary.main, 0.15)
+                      : "divider",
                   borderRadius: 3,
                   maxWidth: "80%",
                 }}
               >
                 <Typography
                   variant="body2"
-                  sx={{
-                    color: "text.primary",
-                    whiteSpace: "pre-wrap",
-                    lineHeight: 1.6,
-                    fontSize: "0.88rem",
-                  }}
+                  sx={{ whiteSpace: "pre-wrap", lineHeight: 1.6, fontSize: "0.88rem" }}
                 >
                   {msg.content}
                 </Typography>
                 <Typography
                   variant="caption"
-                  sx={{
-                    color: "text.secondary",
-                    display: "block",
-                    mt: 0.5,
-                    fontSize: "0.65rem",
-                  }}
+                  sx={{ color: "text.secondary", display: "block", mt: 0.5, fontSize: "0.65rem" }}
                 >
-                  {msg.timestamp.toLocaleTimeString([], {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
+                  {msg.timestamp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                 </Typography>
               </Paper>
             </Box>
           ))}
 
+          {/* Loading indicator */}
           {loading && (
             <Box sx={{ display: "flex", gap: 1.5, mb: 2.5, alignItems: "flex-start" }}>
               <Box
@@ -460,28 +411,28 @@ const Dashboard: React.FC = () => {
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  bgcolor: alpha("#40e0d0", 0.15),
+                  bgcolor: alpha(theme.palette.secondary.main, 0.15),
                   flexShrink: 0,
                 }}
               >
-                <SmartToyOutlinedIcon sx={{ fontSize: 18, color: "#40e0d0" }} />
+                <Bot size={16} color={theme.palette.secondary.main} />
               </Box>
               <Paper
                 elevation={0}
                 sx={{
                   px: 2.5,
                   py: 1.5,
-                  bgcolor: alpha("#fff", 0.03),
+                  bgcolor: alpha(theme.palette.action.hover, 0.4),
                   border: "1px solid",
-                  borderColor: alpha("#fff", 0.06),
+                  borderColor: "divider",
                   borderRadius: 3,
                   display: "flex",
                   alignItems: "center",
                   gap: 1,
                 }}
               >
-                <CircularProgress size={16} sx={{ color: "#40e0d0" }} />
-                <Typography variant="body2" sx={{ color: "text.secondary" }}>
+                <CircularProgress size={16} />
+                <Typography variant="body2" color="text.secondary">
                   Thinking...
                 </Typography>
               </Paper>
@@ -490,14 +441,14 @@ const Dashboard: React.FC = () => {
           <div ref={messagesEndRef} />
         </Box>
 
-        {/* Input area */}
+        {/* Input Bar */}
         <Box
           sx={{
             px: 4,
             py: 2,
             borderTop: "1px solid",
             borderColor: "divider",
-            bgcolor: "#0d1117",
+            bgcolor: "transparent",
             display: "flex",
             gap: 1,
             alignItems: "center",
@@ -517,48 +468,35 @@ const Dashboard: React.FC = () => {
               }
             }}
             disabled={loading}
-            sx={{
-              "& .MuiOutlinedInput-root": {
-                bgcolor: alpha("#fff", 0.04),
-                borderRadius: 3,
-                color: "text.primary",
-                "& fieldset": {
-                  borderColor: alpha("#fff", 0.1),
-                },
-                "&:hover fieldset": {
-                  borderColor: alpha("#fff", 0.2),
-                },
-                "&.Mui-focused fieldset": {
-                  borderColor: "#ff7300",
-                },
-              },
-            }}
+            sx={{ "& .MuiOutlinedInput-root": { borderRadius: 3 } }}
           />
           <IconButton
             onClick={() => handleSend()}
             disabled={loading || !input.trim()}
+            color="primary"
             sx={{
-              bgcolor: "#ff7300",
-              color: "#fff",
+              bgcolor: "primary.main",
+              color: "primary.contrastText",
               width: 40,
               height: 40,
-              "&:hover": { bgcolor: "#e06800" },
+              "&:hover": { bgcolor: "primary.dark" },
               "&.Mui-disabled": {
-                bgcolor: alpha("#ff7300", 0.3),
-                color: alpha("#fff", 0.3),
+                bgcolor: alpha(theme.palette.primary.main, 0.3),
+                color: alpha(theme.palette.primary.contrastText, 0.3),
               },
             }}
           >
-            <SendIcon sx={{ fontSize: 18 }} />
+            <Send size={16} />
           </IconButton>
           <Button
             onClick={clearChat}
             size="small"
-            startIcon={<DeleteOutlineIcon />}
+            startIcon={<Trash2 size={14} />}
             sx={{
               color: "text.secondary",
               whiteSpace: "nowrap",
-              "&:hover": { color: "#f85149" },
+              textTransform: "none",
+              "&:hover": { color: "error.main" },
             }}
           >
             Clear Chat
