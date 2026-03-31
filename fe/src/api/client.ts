@@ -5,17 +5,24 @@ export interface ChatMessage {
   content: string;
 }
 
+export interface ChatResponse {
+  error: boolean;
+  content: string;
+}
+
 export async function sendChat(
   apiKeyId: string,
   context: string,
+  model: string,
   messages: ChatMessage[]
-): Promise<{ error?: boolean; detail?: string; choices?: Array<{ message: { content: string } }> }> {
+): Promise<ChatResponse> {
   const res = await fetch(`${BFF_BASE}/api/chat`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       api_key_id: apiKeyId,
       context,
+      model,
       messages,
     }),
   });

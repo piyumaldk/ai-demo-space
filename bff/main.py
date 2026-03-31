@@ -5,7 +5,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import httpx
 
-from config import GATEWAY_URL, API_KEYS
+from config import GATEWAY_URL, SSL_VERIFY
+from keys import API_KEYS
+from interceptor_config import get_interceptor
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -24,11 +26,8 @@ app.add_middleware(
 class ChatRequest(BaseModel):
     api_key_id: str
     context: str
+    model: str
     messages: list[dict]
-
-
-class GatewayStatusRequest(BaseModel):
-    pass
 
 
 @app.get("/api/health")
@@ -39,7 +38,7 @@ async def health():
 @app.get("/api/gateway-status")
 async def gateway_status():
     try:
-        async with httpx.AsyncClient(timeout=5.0) as client:
+        async with httpx.AsyncClient(timeout=5.0, verify=SSL_VERIFY) as client:
             resp = await client.get(GATEWAY_URL)
             return {"connected": resp.status_code < 500, "url": GATEWAY_URL}
     except Exception:
@@ -48,11 +47,14 @@ async def gateway_status():
 
 @app.post("/api/chat")
 async def chat(req: ChatRequest):
-    logger.info(f"POST /api/chat — key_id={req.api_key_id}, context={req.context}")
+    logger.info(f"POST /api/chat — key_id={req.api_key_id}, model={req.model}, context={req.context}")
     api_key = API_KEYS.get(req.api_key_id)
     if not api_key:
         logger.warning(f"Unknown API key ID: {req.api_key_id}")
         raise HTTPException(status_code=400, detail=f"Unknown API key ID: {req.api_key_id}")
+
+    interceptor = get_interceptor(req.model)
+    logger.info(f"Using interceptor: {type(interceptor).__name__}")
 
     url = f"{GATEWAY_URL}{req.context}"
     logger.info(f"Forwarding to: {url}")
@@ -62,22 +64,17 @@ async def chat(req: ChatRequest):
         "Content-Type": "application/json",
     }
 
-    body = {
-        "messages": req.messages,
-    }
+    body = interceptor.transform_request(req.messages)
 
     try:
-        async with httpx.AsyncClient(timeout=30.0) as client:
+        async with httpx.AsyncClient(timeout=30.0, verify=SSL_VERIFY) as client:
             resp = await client.post(url, json=body, headers=headers)
             logger.info(f"Gateway response: status={resp.status_code}")
-            if resp.status_code != 200:
-                logger.warning(f"Gateway error: {resp.text[:200]}")
-                return {
-                    "error": True,
-                    "status": resp.status_code,
-                    "detail": resp.text,
-                }
-            return resp.json()
+            try:
+                raw = resp.json()
+            except Exception:
+                raw = {"error": resp.text}
+            return interceptor.transform_response(raw, resp.status_code)
     except httpx.TimeoutException:
         logger.error("Gateway timeout")
         raise HTTPException(status_code=504, detail="Gateway timeout")

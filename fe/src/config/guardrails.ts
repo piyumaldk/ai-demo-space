@@ -8,6 +8,7 @@ export interface GuardrailApi {
   name: string;
   desc: string;
   context: string;
+  model: string;
   test_prompts: TestPrompt[];
 }
 
@@ -18,6 +19,7 @@ export const GUARDRAIL_APIS: GuardrailApi[] = [
     desc: "Unprotected — requests pass directly to the LLM with no guardrail.",
     context:
       "/apim-4o-mini/chat/completions?api-version=2025-01-01-preview",
+    model: "gpt-4o-mini",
     test_prompts: [
       {
         label: "💬 Hello",
@@ -39,6 +41,7 @@ export const GUARDRAIL_APIS: GuardrailApi[] = [
     desc: "Masks emails, credit cards, phone numbers, and SSNs before they reach the LLM.",
     context:
       "/apim-4o-mini-pii-masking-regex/chat/completions?api-version=2025-01-01-preview",
+    model: "gpt-4o-mini",
     test_prompts: [
       {
         label: "📞 Phone+Email",
@@ -60,6 +63,7 @@ export const GUARDRAIL_APIS: GuardrailApi[] = [
     desc: "Validates URLs found in requests before they reach the LLM.",
     context:
       "/apim-4o-mini-url-guardrail/chat/completions?api-version=2025-01-01-preview",
+    model: "gpt-4o-mini",
     test_prompts: [
       {
         label: "🛡️ Invalid URL 1",
@@ -81,6 +85,7 @@ export const GUARDRAIL_APIS: GuardrailApi[] = [
     desc: "Enforces word count limits — requests must contain between 10 and 50 words.",
     context:
       "/apim-4o-mini-word-count-guardrail/chat/completions?api-version=2025-01-01-preview",
+    model: "gpt-4o-mini",
     test_prompts: [
       {
         label: "⚠️ Below Min (< 10)",

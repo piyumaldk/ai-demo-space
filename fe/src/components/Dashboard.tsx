@@ -81,16 +81,15 @@ const Dashboard: React.FC = () => {
       const res = await sendChat(
         selectedGuardrail.id,
         selectedGuardrail.context,
+        selectedGuardrail.model,
         chatMessages
       );
 
       let content: string;
       if (res.error) {
-        content = `⚠️ Error (${res.status || "unknown"}): ${res.detail || "Unknown error"}`;
-      } else if (res.choices && res.choices.length > 0) {
-        content = res.choices[0].message.content;
+        content = `⚠️ ${res.content}`;
       } else {
-        content = JSON.stringify(res, null, 2);
+        content = res.content;
       }
 
       setMessages((prev) => [
