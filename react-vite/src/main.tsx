@@ -1,6 +1,6 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import { AcrylicOrangeTheme, OxygenUIThemeProvider } from "@wso2/oxygen-ui";
+import { AcrylicPurpleTheme, OxygenUIThemeProvider } from "@wso2/oxygen-ui";
 import App from "./App";
 import "./styles.css";
 
@@ -9,12 +9,12 @@ createRoot(document.getElementById("root")!).render(
     <OxygenUIThemeProvider
       themes={[
         {
-          key: "acrylicOrange",
-          label: "Acrylic Orange Theme",
-          theme: AcrylicOrangeTheme,
+          key: "acrylicPurple",
+          label: "Acrylic Purple Theme",
+          theme: AcrylicPurpleTheme,
         },
       ]}
-      initialTheme="acrylicOrange"
+      initialTheme="acrylicPurple"
     >
       <App />
     </OxygenUIThemeProvider>

@@ -159,11 +159,11 @@ const Dashboard: React.FC = () => {
         <Box sx={{ p: 2.5, pb: 1 }}>
           <Typography
             variant="h6"
-            sx={{ fontWeight: 700, fontSize: "1.1rem", color: "text.primary" }}
+            sx={{ fontWeight: 700, fontSize: "1.3rem", color: "text.primary" }}
           >
             WSO2 AI Gateway Demo
           </Typography>
-          <Typography variant="caption" sx={{ color: "text.secondary", fontSize: "0.7rem" }}>
+          <Typography variant="caption" sx={{ color: "text.secondary", fontSize: "0.8rem" }}>
             WSO2 API Manager — Guardrails
           </Typography>
         </Box>
@@ -175,7 +175,7 @@ const Dashboard: React.FC = () => {
             size="small"
             color={gatewayConnected ? "success" : "error"}
             variant="outlined"
-            sx={{ width: "100%", fontWeight: 600, fontSize: "0.75rem" }}
+            sx={{ width: "100%", fontWeight: 600, fontSize: "0.85rem" }}
             icon={
               <Box
                 sx={{
@@ -202,7 +202,7 @@ const Dashboard: React.FC = () => {
             value={model}
             size="small"
             fullWidth
-            sx={{ fontSize: "0.8rem", fontWeight: 600, borderRadius: 2 }}
+            sx={{ fontSize: "0.9rem", fontWeight: 600, borderRadius: 2 }}
           >
             <MenuItem value="gpt-4o-mini">gpt-4o-mini</MenuItem>
           </Select>
@@ -251,7 +251,7 @@ const Dashboard: React.FC = () => {
               <ListItemText
                 primary={g.name}
                 primaryTypographyProps={{
-                  fontSize: "0.82rem",
+                  fontSize: "0.92rem",
                   fontWeight: selectedGuardrail.id === g.id ? 600 : 400,
                   color: selectedGuardrail.id === g.id ? "primary.main" : "text.primary",
                 }}
@@ -273,10 +273,10 @@ const Dashboard: React.FC = () => {
             bgcolor: "transparent",
           }}
         >
-          <Typography variant="h5" sx={{ fontWeight: 700, mb: 0.5 }}>
+          <Typography variant="h4" sx={{ fontWeight: 700, mb: 0.5 }}>
             {selectedGuardrail.name}
           </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ fontSize: "0.85rem" }}>
+          <Typography variant="body2" color="text.secondary" sx={{ fontSize: "0.95rem" }}>
             {selectedGuardrail.desc}
           </Typography>
           <Typography
@@ -286,7 +286,7 @@ const Dashboard: React.FC = () => {
               mt: 0.5,
               display: "block",
               fontFamily: "monospace",
-              fontSize: "0.7rem",
+              fontSize: "0.8rem",
             }}
           >
             API: {selectedGuardrail.context}
@@ -308,7 +308,18 @@ const Dashboard: React.FC = () => {
                   size="small"
                   onClick={() => handleSend(tp.text)}
                   disabled={loading}
-                  sx={{ fontSize: "0.78rem", px: 2, py: 0.8, textTransform: "none" }}
+                  sx={{
+                    fontSize: "0.88rem",
+                    px: 2,
+                    py: 0.8,
+                    textTransform: "none",
+                    color: alpha("#fff", 0.7),
+                    borderColor: alpha("#fff", 0.25),
+                    "&:hover": {
+                      borderColor: alpha("#fff", 0.5),
+                      bgcolor: alpha("#fff", 0.05),
+                    },
+                  }}
                 >
                   {tp.label}
                 </Button>
@@ -386,13 +397,13 @@ const Dashboard: React.FC = () => {
               >
                 <Typography
                   variant="body2"
-                  sx={{ whiteSpace: "pre-wrap", lineHeight: 1.6, fontSize: "0.88rem" }}
+                  sx={{ whiteSpace: "pre-wrap", lineHeight: 1.6, fontSize: "1rem" }}
                 >
                   {msg.content}
                 </Typography>
                 <Typography
                   variant="caption"
-                  sx={{ color: "text.secondary", display: "block", mt: 0.5, fontSize: "0.65rem" }}
+                  sx={{ color: "text.secondary", display: "block", mt: 0.5, fontSize: "0.75rem" }}
                 >
                   {msg.timestamp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                 </Typography>
@@ -468,7 +479,24 @@ const Dashboard: React.FC = () => {
               }
             }}
             disabled={loading}
-            sx={{ "& .MuiOutlinedInput-root": { borderRadius: 3 } }}
+            sx={{
+              "& .MuiOutlinedInput-root": {
+                borderRadius: 3,
+                "& fieldset": {
+                  borderColor: alpha("#fff", 0.3),
+                },
+                "&:hover fieldset": {
+                  borderColor: alpha("#fff", 0.5),
+                },
+                "&.Mui-focused fieldset": {
+                  borderColor: "primary.main",
+                },
+              },
+              "& .MuiOutlinedInput-input::placeholder": {
+                color: alpha("#fff", 0.5),
+                opacity: 1,
+              },
+            }}
           />
           <IconButton
             onClick={() => handleSend()}
