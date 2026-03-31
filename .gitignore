@@ -1,12 +1,13 @@
 # Python
 __pycache__/
-bff/venv/
-bff/keys.py
+python-fastapi/venv/
+python-fastapi/keys.py
 
 # Node
 node_modules/
 dist/
 dist-ssr/
+.vite/
 *.local
 
 # Logs
