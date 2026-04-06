@@ -23,13 +23,13 @@ ARG USER_GID=$USER_UID
 RUN addgroup -g $USER_GID $USERNAME && \
     adduser -D -u $USER_UID -G $USERNAME $USERNAME && \
     apk upgrade --no-cache && \
-    mkdir -p /tmp/nginx/cache /tmp/nginx/logs /tmp/nginx/run && \
-    ln -sf /tmp/nginx/cache /var/cache/nginx && \
-    ln -sf /tmp/nginx/logs /var/log/nginx && \
-    ln -sf /tmp/nginx/run /var/run/nginx && \
-    touch /tmp/nginx/nginx.pid && \
-    chown -R $USER_UID:$USER_GID /tmp/nginx && \
-    chmod 666 /tmp/nginx/nginx.pid && \
+    mkdir -p /app/.tmp/nginx/cache /app/.tmp/nginx/logs /app/.tmp/nginx/run && \
+    ln -sf /app/.tmp/nginx/cache /var/cache/nginx && \
+    ln -sf /app/.tmp/nginx/logs /var/log/nginx && \
+    ln -sf /app/.tmp/nginx/run /var/run/nginx && \
+    touch /app/.tmp/nginx/nginx.pid && \
+    chown -R $USER_UID:$USER_GID /app/.tmp && \
+    chmod 666 /app/.tmp/nginx/nginx.pid && \
     mkdir -p /app && \
     chown -R $USER_UID:$USER_GID /app
 
