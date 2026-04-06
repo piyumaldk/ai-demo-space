@@ -1,4 +1,6 @@
-const BFF_BASE = import.meta.env.VITE_BFF_URL || "http://localhost:8000";
+import { getEnvOrDefault } from "../utils/getEnvOrDefault";
+
+const BFF_BASE = getEnvOrDefault("VITE_BFF_URL", "http://localhost:8000");
 
 export interface ChatMessage {
   role: "user" | "assistant" | "system";

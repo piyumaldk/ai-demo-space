@@ -48,7 +48,7 @@ Interactive docs: `http://localhost:8000/docs`
 cd react-vite
 
 # Install dependencies
-npm install
+npm ci --legacy-peer-deps
 
 # Start the dev server (listens on http://localhost:5173)
 npm run dev
