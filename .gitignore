@@ -2,6 +2,7 @@
 __pycache__/
 python-fastapi/venv/
 python-fastapi/keys.py
+python-fastapi/config.py
 
 # Node
 node_modules/
