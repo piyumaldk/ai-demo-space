@@ -17,8 +17,6 @@ import {
   Button,
   CircularProgress,
   Stack,
-  AppBar,
-  Toolbar,
   alpha,
   useTheme,
 } from "@wso2/oxygen-ui";
