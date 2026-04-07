@@ -19,6 +19,8 @@ import {
   Stack,
   alpha,
   useTheme,
+  ColorSchemeToggle,
+  useColorScheme,
 } from "@wso2/oxygen-ui";
 import {
   Send,
@@ -52,6 +54,9 @@ const GUARDRAIL_ICONS: Record<string, React.ReactNode> = {
 
 const Dashboard: React.FC = () => {
   const theme = useTheme();
+  const isDark = theme.palette.mode === 'dark';
+  const { mode } = useColorScheme();
+  const colorSchemeLabel = `Theme: ${mode === 'dark' ? 'Dark' : mode === 'light' ? 'Light' : 'System'}`;
   const [gatewayConnected, setGatewayConnected] = useState(false);
   const [model, setModel] = useState("gpt-4o-mini");
   const [selectedGuardrail, setSelectedGuardrail] = useState<GuardrailApi>(
@@ -104,7 +109,7 @@ const Dashboard: React.FC = () => {
         ...prev,
         {
           role: "assistant",
-          content: res.error ? `⚠️ ${res.content}` : res.content,
+          content: res.error ? `${res.content}` : res.content,
           timestamp: new Date(),
         },
       ]);
@@ -114,7 +119,7 @@ const Dashboard: React.FC = () => {
         ...prev,
         {
           role: "assistant",
-          content: `❌ Request failed: ${errorMsg}`,
+          content: `Request failed: ${errorMsg}`,
           timestamp: new Date(),
         },
       ]);
@@ -142,9 +147,10 @@ const Dashboard: React.FC = () => {
           "& .MuiDrawer-paper": {
             width: DRAWER_WIDTH,
             boxSizing: "border-box",
-            bgcolor: "#0d0d0d",
+            bgcolor: isDark ? "#0d0d0d" : "background.paper",
             borderRight: "1px solid",
-            borderColor: alpha("#fff", 0.08),
+            borderColor: isDark ? alpha("#fff", 0.08) : "divider",
+            borderRadius: 0,
           },
         }}
       >
@@ -234,6 +240,13 @@ const Dashboard: React.FC = () => {
             </ListItemButton>
           ))}
         </List>
+        <Divider />
+        <Box sx={{ p: 2, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <Typography variant="caption" sx={{ color: "text.secondary", fontSize: "0.75rem" }}>
+            {colorSchemeLabel}
+          </Typography>
+          <ColorSchemeToggle size="small" />
+        </Box>
       </Drawer>
 
       {/* Main Content */}
@@ -311,9 +324,9 @@ const Dashboard: React.FC = () => {
                 sx={{
                   width: "100%",
                   border: "1px solid",
-                  borderColor: alpha("#fff", 0.2),
+                  borderColor: isDark ? alpha("#fff", 0.2) : "divider",
                   borderRadius: 2.5,
-                  bgcolor: alpha("#fff", 0.03),
+                  bgcolor: isDark ? alpha("#fff", 0.03) : "background.paper",
                   overflow: "hidden",
                   "&:focus-within": {
                     borderColor: "primary.main",
@@ -342,7 +355,7 @@ const Dashboard: React.FC = () => {
                     pt: 1.5,
                     pb: 0.5,
                     "& .MuiInputBase-input::placeholder": {
-                      color: alpha("#fff", 0.4),
+                      color: isDark ? alpha("#fff", 0.4) : "text.disabled",
                       opacity: 1,
                     },
                   }}
@@ -407,11 +420,11 @@ const Dashboard: React.FC = () => {
                       py: 0.8,
                       textTransform: "none",
                       borderRadius: 3,
-                      color: alpha("#fff", 0.7),
-                      borderColor: alpha("#fff", 0.2),
+                      color: isDark ? alpha("#fff", 0.7) : "text.secondary",
+                      borderColor: isDark ? alpha("#fff", 0.2) : "divider",
                       "&:hover": {
-                        borderColor: alpha("#fff", 0.5),
-                        bgcolor: alpha("#fff", 0.05),
+                        borderColor: isDark ? alpha("#fff", 0.5) : alpha(theme.palette.text.primary, 0.4),
+                        bgcolor: isDark ? alpha("#fff", 0.05) : "action.hover",
                       },
                     }}
                   >
@@ -439,8 +452,13 @@ const Dashboard: React.FC = () => {
                         justifyContent: "center",
                         bgcolor:
                           msg.role === "user"
-                            ? alpha(theme.palette.primary.main, 0.15)
-                            : alpha(theme.palette.secondary.main, 0.15),
+                            ? alpha(theme.palette.primary.main, isDark ? 0.15 : 0.18)
+                            : alpha(theme.palette.primary.main, isDark ? 0.15 : 0.18),
+                        border: isDark ? "none" : "1px solid",
+                        borderColor:
+                          msg.role === "user"
+                            ? alpha(theme.palette.primary.main, 0.3)
+                            : alpha(theme.palette.primary.main, 0.3),
                         flexShrink: 0,
                         mt: 0.5,
                       }}
@@ -448,7 +466,7 @@ const Dashboard: React.FC = () => {
                       {msg.role === "user" ? (
                         <User size={16} color={theme.palette.primary.main} />
                       ) : (
-                        <Bot size={16} color={theme.palette.secondary.main} />
+                        <Bot size={16} color={theme.palette.primary.main} />
                       )}
                     </Box>
                     <Paper
@@ -458,12 +476,12 @@ const Dashboard: React.FC = () => {
                         py: 1.5,
                         bgcolor:
                           msg.role === "user"
-                            ? alpha(theme.palette.primary.main, 0.06)
-                            : alpha(theme.palette.action.hover, 0.4),
+                            ? alpha(theme.palette.primary.main, isDark ? 0.06 : 0.08)
+                            : isDark ? alpha(theme.palette.action.hover, 0.4) : "background.default",
                         border: "1px solid",
                         borderColor:
                           msg.role === "user"
-                            ? alpha(theme.palette.primary.main, 0.15)
+                            ? alpha(theme.palette.primary.main, isDark ? 0.15 : 0.25)
                             : "divider",
                         borderRadius: 3,
                         maxWidth: "80%",
@@ -495,18 +513,20 @@ const Dashboard: React.FC = () => {
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
-                        bgcolor: alpha(theme.palette.secondary.main, 0.15),
+                        bgcolor: alpha(theme.palette.primary.main, isDark ? 0.15 : 0.18),
+                        border: isDark ? "none" : "1px solid",
+                        borderColor: alpha(theme.palette.primary.main, 0.3),
                         flexShrink: 0,
                       }}
                     >
-                      <Bot size={16} color={theme.palette.secondary.main} />
+                      <Bot size={16} color={theme.palette.primary.main} />
                     </Box>
                     <Paper
                       elevation={0}
                       sx={{
                         px: 2.5,
                         py: 1.5,
-                        bgcolor: alpha(theme.palette.action.hover, 0.4),
+                        bgcolor: isDark ? alpha(theme.palette.action.hover, 0.4) : "background.default",
                         border: "1px solid",
                         borderColor: "divider",
                         borderRadius: 3,
@@ -546,11 +566,11 @@ const Dashboard: React.FC = () => {
                       py: 0.5,
                       textTransform: "none",
                       borderRadius: 3,
-                      color: alpha("#fff", 0.6),
-                      borderColor: alpha("#fff", 0.15),
+                      color: isDark ? alpha("#fff", 0.6) : "text.secondary",
+                      borderColor: isDark ? alpha("#fff", 0.15) : "divider",
                       "&:hover": {
-                        borderColor: alpha("#fff", 0.4),
-                        bgcolor: alpha("#fff", 0.05),
+                        borderColor: isDark ? alpha("#fff", 0.4) : alpha(theme.palette.text.primary, 0.4),
+                        bgcolor: isDark ? alpha("#fff", 0.05) : "action.hover",
                       },
                     }}
                   >
@@ -570,9 +590,9 @@ const Dashboard: React.FC = () => {
                 <Box
                   sx={{
                     border: "1px solid",
-                    borderColor: alpha("#fff", 0.2),
+                    borderColor: isDark ? alpha("#fff", 0.2) : "divider",
                     borderRadius: 2.5,
-                    bgcolor: alpha("#fff", 0.03),
+                    bgcolor: isDark ? alpha("#fff", 0.03) : "background.paper",
                     overflow: "hidden",
                     "&:focus-within": {
                       borderColor: "primary.main",
@@ -601,7 +621,7 @@ const Dashboard: React.FC = () => {
                       pt: 1.5,
                       pb: 0.5,
                       "& .MuiInputBase-input::placeholder": {
-                        color: alpha("#fff", 0.4),
+                        color: isDark ? alpha("#fff", 0.4) : "text.disabled",
                         opacity: 1,
                       },
                     }}
