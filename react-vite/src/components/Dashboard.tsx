@@ -63,6 +63,13 @@ const Dashboard: React.FC = () => {
   const isDark = theme.palette.mode === 'dark';
   const { mode } = useColorScheme();
   const colorSchemeLabel = `Theme: ${mode === 'dark' ? 'Dark' : mode === 'light' ? 'Light' : 'System'}`;
+
+  // Resolve dark state synchronously — avoids flash on first render when mode is "system"
+  const resolvedIsDark = React.useMemo(() => {
+    if (mode === 'dark') return true;
+    if (mode === 'light') return false;
+    return typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches;
+  }, [mode]);
   const [gatewayConnected, setGatewayConnected] = useState(false);
   const [model, setModel] = useState("gpt-4o-mini");
   const [selectedGuardrail, setSelectedGuardrail] = useState<GuardrailApi>(
@@ -386,10 +393,12 @@ const Dashboard: React.FC = () => {
             </>
           ) : (
             <GoogleLogin
+              key={resolvedIsDark ? "dark" : "light"}
               onSuccess={handleGoogleSuccess}
               onError={() => console.error("Google login failed")}
               shape="pill"
               size="medium"
+              theme={resolvedIsDark ? "filled_black" : "outline"}
             />
           )}
         </Box>
