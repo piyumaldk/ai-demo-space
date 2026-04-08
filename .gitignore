@@ -3,6 +3,7 @@ __pycache__/
 python-fastapi/venv/
 python-fastapi/keys.py
 python-fastapi/config.py
+python-fastapi/allowed_mails.py
 ai-gateway-v*/
 
 # Node

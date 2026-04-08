@@ -19,6 +19,8 @@ import {
   Stack,
   alpha,
   useTheme,
+  Menu,
+  Avatar,
   ColorSchemeToggle,
   useColorScheme,
 } from "@wso2/oxygen-ui";
@@ -31,7 +33,11 @@ import {
   Zap,
   Lock,
   Ruler,
+  LogOut,
 } from "@wso2/oxygen-ui-icons-react";
+import { GoogleLogin } from "@react-oauth/google";
+import type { CredentialResponse } from "@react-oauth/google";
+import { useAuth } from "../auth/AuthContext";
 import { GUARDRAIL_APIS } from "../config/guardrails";
 import type { GuardrailApi } from "../config/guardrails";
 import { sendChat, checkGatewayStatus } from "../api/client";
@@ -67,6 +73,27 @@ const Dashboard: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  const { user: authUser, token, isAuthenticated, signIn: authSignIn, signOut: authSignOut } = useAuth();
+  const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
+
+  function decodeJwtPayload(credential: string): Record<string, string> {
+    try {
+      const base64 = credential.split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
+      return JSON.parse(atob(base64));
+    } catch {
+      return {};
+    }
+  }
+
+  function handleGoogleSuccess(credentialResponse: CredentialResponse) {
+    if (!credentialResponse.credential) return;
+    const payload = decodeJwtPayload(credentialResponse.credential);
+    const expiresIn = payload.exp
+      ? Number(payload.exp) - Math.floor(Date.now() / 1000)
+      : 3600;
+    authSignIn(payload.email, payload.name, payload.picture, credentialResponse.credential, expiresIn);
+  }
+
   useEffect(() => {
     checkGatewayStatus().then((s) => setGatewayConnected(s.connected));
     const interval = setInterval(() => {
@@ -90,6 +117,19 @@ const Dashboard: React.FC = () => {
     };
     setMessages((prev) => [...prev, userMsg]);
     setInput("");
+
+    if (!isAuthenticated) {
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          content: "Please sign in with an allowed @wso2.com email to proceed.",
+          timestamp: new Date(),
+        },
+      ]);
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -102,7 +142,8 @@ const Dashboard: React.FC = () => {
         selectedGuardrail.id,
         selectedGuardrail.context,
         selectedGuardrail.model,
-        chatMessages
+        chatMessages,
+        token
       );
 
       setMessages((prev) => [
@@ -114,15 +155,27 @@ const Dashboard: React.FC = () => {
         },
       ]);
     } catch (err: unknown) {
-      const errorMsg = err instanceof Error ? err.message : "Unknown error";
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: "assistant",
-          content: `Request failed: ${errorMsg}`,
-          timestamp: new Date(),
-        },
-      ]);
+      if (err instanceof Error && err.message === "AUTH_EXPIRED") {
+        authSignOut();
+        setMessages((prev) => [
+          ...prev,
+          {
+            role: "assistant",
+            content: "Your session has expired. Please sign in again.",
+            timestamp: new Date(),
+          },
+        ]);
+      } else {
+        const errorMsg = err instanceof Error ? err.message : "Unknown error";
+        setMessages((prev) => [
+          ...prev,
+          {
+            role: "assistant",
+            content: `Request failed: ${errorMsg}`,
+            timestamp: new Date(),
+          },
+        ]);
+      }
     } finally {
       setLoading(false);
     }
@@ -251,6 +304,96 @@ const Dashboard: React.FC = () => {
 
       {/* Main Content */}
       <Box sx={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0 }}>
+        {/* Auth Header */}
+        <Box
+          sx={{
+            px: 3,
+            py: 1,
+            borderBottom: "1px solid",
+            borderColor: "divider",
+            display: "flex",
+            justifyContent: "flex-end",
+            alignItems: "center",
+            minHeight: 48,
+          }}
+        >
+          {isAuthenticated && authUser ? (
+            <>
+              <Box
+                onClick={(e: React.MouseEvent<HTMLElement>) =>
+                  setMenuAnchor(e.currentTarget)
+                }
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 1,
+                  cursor: "pointer",
+                  px: 1.5,
+                  py: 0.5,
+                  borderRadius: 6,
+                  border: "1px solid",
+                  borderColor: isDark ? alpha("#fff", 0.12) : "divider",
+                  "&:hover": {
+                    bgcolor: isDark ? alpha("#fff", 0.05) : "action.hover",
+                  },
+                }}
+              >
+                <Avatar
+                  src={authUser.picture}
+                  sx={{ width: 28, height: 28 }}
+                />
+                <Typography
+                  variant="body2"
+                  sx={{ fontWeight: 500, fontSize: "0.85rem", color: "text.primary" }}
+                >
+                  {authUser.name}
+                </Typography>
+              </Box>
+              <Menu
+                anchorEl={menuAnchor}
+                open={Boolean(menuAnchor)}
+                onClose={() => setMenuAnchor(null)}
+                transformOrigin={{ horizontal: "right", vertical: "top" }}
+                anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
+                slotProps={{
+                  paper: {
+                    sx: { mt: 0.5, minWidth: 220 },
+                  },
+                }}
+              >
+                <Box sx={{ px: 2, py: 1.5 }}>
+                  <Typography variant="body2" sx={{ fontWeight: 600, fontSize: "0.9rem" }}>
+                    {authUser.name}
+                  </Typography>
+                  <Typography variant="caption" sx={{ color: "text.secondary" }}>
+                    {authUser.email}
+                  </Typography>
+                </Box>
+                <Divider />
+                <MenuItem
+                  onClick={() => {
+                    authSignOut();
+                    setMenuAnchor(null);
+                  }}
+                  sx={{ mt: 0.5 }}
+                >
+                  <ListItemIcon>
+                    <LogOut size={16} />
+                  </ListItemIcon>
+                  <ListItemText>Log out</ListItemText>
+                </MenuItem>
+              </Menu>
+            </>
+          ) : (
+            <GoogleLogin
+              onSuccess={handleGoogleSuccess}
+              onError={() => console.error("Google login failed")}
+              shape="pill"
+              size="medium"
+            />
+          )}
+        </Box>
+
         {/* Guardrail Info Header — only show when conversation is active */}
         <Box
           sx={{

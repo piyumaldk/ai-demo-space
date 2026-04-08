@@ -1,6 +1,4 @@
-import { getEnvOrDefault } from "../utils/getEnvOrDefault";
-
-const BFF_BASE = getEnvOrDefault("VITE_BFF_URL", "http://localhost:8000");
+import { BFF_BASE } from "../config/config";
 
 export interface ChatMessage {
   role: "user" | "assistant" | "system";
@@ -16,11 +14,17 @@ export async function sendChat(
   apiKeyId: string,
   context: string,
   model: string,
-  messages: ChatMessage[]
+  messages: ChatMessage[],
+  authToken?: string | null
 ): Promise<ChatResponse> {
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  if (authToken) {
+    headers["Authorization"] = `Bearer ${authToken}`;
+  }
+
   const res = await fetch(`${BFF_BASE}/api/chat`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers,
     body: JSON.stringify({
       api_key_id: apiKeyId,
       context,
@@ -28,6 +32,11 @@ export async function sendChat(
       messages,
     }),
   });
+
+  if (res.status === 401) {
+    throw new Error("AUTH_EXPIRED");
+  }
+
   return res.json();
 }
 

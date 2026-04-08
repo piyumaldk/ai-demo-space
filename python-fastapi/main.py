@@ -1,7 +1,7 @@
 import json
 import logging
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import httpx
@@ -9,6 +9,7 @@ import httpx
 from config import GATEWAY_URL, SSL_VERIFY
 from keys import API_KEYS
 from interceptor_config import get_interceptor
+from auth.auth import get_verified_email, is_email_allowed
 
 logging.basicConfig(
     level=logging.DEBUG,
@@ -62,7 +63,17 @@ async def gateway_status():
 
 
 @app.post("/api/chat")
-async def chat(req: ChatRequest):
+async def chat(req: ChatRequest, request: Request):
+    # ── 0. AUTH ─────────────────────────────────────────────────
+    email = get_verified_email(request)
+    if not is_email_allowed(email):
+        return {
+            "error": True,
+            "content": f"Your email ({email}) is not authorized. "
+            "Only @wso2.com emails or pre-approved addresses are allowed.",
+        }
+    logger.debug(f"[0] AUTH OK — {email}")
+
     # ── 1. INCOMING REQUEST (frontend → FastAPI) ──────────────────
     logger.debug(SEP)
     logger.debug("[1] INCOMING REQUEST  (frontend → FastAPI)")
