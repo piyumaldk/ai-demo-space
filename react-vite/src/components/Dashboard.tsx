@@ -426,14 +426,16 @@ const Dashboard: React.FC = () => {
               </Menu>
             </>
           ) : (
-            <GoogleLogin
-              key={resolvedIsDark ? "dark" : "light"}
-              onSuccess={handleGoogleSuccess}
-              onError={() => console.error("Google login failed")}
-              shape="pill"
-              size="medium"
-              theme={resolvedIsDark ? "filled_black" : "outline"}
-            />
+            <div className="google-signin-wrapper">
+              <GoogleLogin
+                key={resolvedIsDark ? "dark" : "light"}
+                onSuccess={handleGoogleSuccess}
+                onError={() => console.error("Google login failed")}
+                shape="pill"
+                size="medium"
+                theme={resolvedIsDark ? "filled_black" : "outline"}
+              />
+            </div>
           )}
         </Box>
 
