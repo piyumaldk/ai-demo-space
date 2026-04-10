@@ -622,11 +622,18 @@ const Dashboard: React.FC = () => {
           ) : (
             /* Messages + bottom input when conversation started */
             <>
-              <Box sx={{ flex: 1, overflow: "auto", px: 4, py: 3 }}>
+              <Box sx={{ flex: 1, overflow: "auto", display: "flex", flexDirection: "column", alignItems: "center" }}>
+                <Box sx={{ width: "100%", maxWidth: 1200, px: 4, py: 3 }}>
                 {messages.map((msg, idx) => (
                   <Box
                     key={idx}
-                    sx={{ display: "flex", gap: 1.5, mb: 2.5, alignItems: "flex-start" }}
+                    sx={{
+                      display: "flex",
+                      gap: 1.5,
+                      mb: 2.5,
+                      alignItems: "flex-start",
+                      flexDirection: msg.role === "user" ? "row-reverse" : "row",
+                    }}
                   >
                     <Box
                       sx={{
@@ -636,15 +643,9 @@ const Dashboard: React.FC = () => {
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
-                        bgcolor:
-                          msg.role === "user"
-                            ? alpha(theme.palette.primary.main, isDark ? 0.15 : 0.18)
-                            : alpha(theme.palette.primary.main, isDark ? 0.15 : 0.18),
+                        bgcolor: alpha(theme.palette.primary.main, isDark ? 0.15 : 0.18),
                         border: isDark ? "none" : "1px solid",
-                        borderColor:
-                          msg.role === "user"
-                            ? alpha(theme.palette.primary.main, 0.3)
-                            : alpha(theme.palette.primary.main, 0.3),
+                        borderColor: alpha(theme.palette.primary.main, 0.3),
                         flexShrink: 0,
                         mt: 0.5,
                       }}
@@ -681,7 +682,13 @@ const Dashboard: React.FC = () => {
                       </Typography>
                       <Typography
                         variant="caption"
-                        sx={{ color: "text.secondary", display: "block", mt: 0.5, fontSize: "0.75rem" }}
+                        sx={{
+                          color: "text.secondary",
+                          display: "block",
+                          mt: 0.5,
+                          fontSize: "0.75rem",
+                          textAlign: msg.role === "user" ? "right" : "left",
+                        }}
                       >
                         {msg.timestamp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                       </Typography>
@@ -728,16 +735,18 @@ const Dashboard: React.FC = () => {
                     </Paper>
                   </Box>
                 )}
-                <div ref={messagesEndRef} />
+                  <div ref={messagesEndRef} />
+                </Box>
               </Box>
 
               {/* Test prompts strip above input */}
+              <Box sx={{ display: "flex", justifyContent: "center" }}>
               <Stack
                 direction="row"
                 spacing={1}
                 flexWrap="wrap"
                 useFlexGap
-                sx={{ px: 4, pt: 1.5, pb: 0 }}
+                sx={{ px: 4, pt: 1.5, pb: 0, width: "100%", maxWidth: 1200 }}
               >
                 {selectedGuardrail.test_prompts.map((tp, idx) => (
                   <Button
@@ -764,13 +773,17 @@ const Dashboard: React.FC = () => {
                   </Button>
                 ))}
               </Stack>
+              </Box>
 
               {/* Bottom Input Bar */}
+              <Box sx={{ display: "flex", justifyContent: "center" }}>
               <Box
                 sx={{
                   px: 4,
                   py: 2,
                   bgcolor: "transparent",
+                  width: "100%",
+                  maxWidth: 1200,
                 }}
               >
                 <Box
@@ -873,6 +886,7 @@ const Dashboard: React.FC = () => {
                     </IconButton>
                   </Box>
                 </Box>
+              </Box>
               </Box>
             </>
           )}
