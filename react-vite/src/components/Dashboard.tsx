@@ -220,54 +220,32 @@ const Dashboard: React.FC = () => {
             variant="h6"
             sx={{ fontWeight: 700, fontSize: "1.3rem", color: "text.primary" }}
           >
-            WSO2AI Demo
+            WSO2 AI DEMO
           </Typography>
           <Typography variant="caption" sx={{ color: "text.secondary", fontSize: "0.8rem" }}>
-            WSO2 API Manager — Guardrails
+            Tryout Console
           </Typography>
         </Box>
 
         {/* Gateway Status */}
-        <Box sx={{ px: 2.5, py: 1.5 }}>
+        <Box sx={{ px: 2.5, py: 1.5, display: "flex", alignItems: "center", gap: 1 }}>
+          <Typography variant="body2" sx={{ fontWeight: 600, fontSize: "0.88rem", color: "text.primary" }}>
+            AI Gateway
+          </Typography>
           <Chip
-            label={gatewayConnected ? "Gateway connected" : "Gateway disconnected"}
+            label={gatewayConnected ? "Active" : "Not Active"}
             size="small"
             color={gatewayConnected ? "success" : "error"}
             variant="outlined"
-            sx={{ width: "100%", fontWeight: 600, fontSize: "0.85rem" }}
-            icon={
-              <Box
-                sx={{
-                  width: 8,
-                  height: 8,
-                  borderRadius: "50%",
-                  bgcolor: gatewayConnected ? "success.main" : "error.main",
-                  ml: 1,
-                }}
-              />
-            }
+            sx={{ fontWeight: 600, fontSize: "0.75rem", height: 22 }}
           />
         </Box>
 
         <Divider sx={{ my: 1.5 }} />
 
-        {/* Guardrails List */}
-        <Box sx={{ px: 2.5, pb: 1 }}>
-          <Typography
-            variant="caption"
-            sx={{
-              color: "text.secondary",
-              fontWeight: 700,
-              textTransform: "uppercase",
-              letterSpacing: 1,
-            }}
-          >
-            Guardrails
-          </Typography>
-        </Box>
-
-        <List sx={{ px: 1, flex: 1, overflow: "auto" }}>
-          {GUARDRAIL_APIS.map((g) => (
+        {/* No Guardrail — above the Guardrails section */}
+        <List sx={{ px: 1, pb: 0 }}>
+          {GUARDRAIL_APIS.slice(0, 1).map((g) => (
             <ListItemButton
               key={g.id}
               selected={selectedGuardrail.id === g.id}
@@ -291,10 +269,66 @@ const Dashboard: React.FC = () => {
               </ListItemIcon>
               <ListItemText
                 primary={g.name}
-                primaryTypographyProps={{
-                  fontSize: "0.92rem",
-                  fontWeight: selectedGuardrail.id === g.id ? 600 : 400,
-                  color: selectedGuardrail.id === g.id ? "primary.main" : "text.primary",
+                slotProps={{
+                  primary: {
+                    fontSize: "0.92rem",
+                    fontWeight: selectedGuardrail.id === g.id ? 600 : 400,
+                    color: selectedGuardrail.id === g.id ? "primary.main" : "text.primary",
+                  },
+                }}
+              />
+            </ListItemButton>
+          ))}
+        </List>
+
+        <Divider sx={{ my: 1.5 }} />
+
+        {/* Guardrails List */}
+        <Box sx={{ px: 2.5, pb: 1 }}>
+          <Typography
+            variant="caption"
+            sx={{
+              color: "text.secondary",
+              fontWeight: 700,
+              textTransform: "uppercase",
+              letterSpacing: 1,
+            }}
+          >
+            Guardrails
+          </Typography>
+        </Box>
+
+        <List sx={{ px: 1, flex: 1, overflow: "auto" }}>
+          {GUARDRAIL_APIS.slice(1).map((g) => (
+            <ListItemButton
+              key={g.id}
+              selected={selectedGuardrail.id === g.id}
+              onClick={() => handleGuardrailSwitch(g)}
+              sx={{
+                borderRadius: 2,
+                mb: 0.5,
+                py: 1,
+                px: 1.5,
+                "&.Mui-selected": {
+                  bgcolor: alpha(theme.palette.primary.main, 0.15),
+                  "&:hover": { bgcolor: alpha(theme.palette.primary.main, 0.2) },
+                },
+                "&:hover": {
+                  bgcolor: alpha(theme.palette.action.hover, 0.08),
+                },
+              }}
+            >
+              <ListItemIcon sx={{ minWidth: 32, color: "text.secondary" }}>
+                {GUARDRAIL_ICONS[g.id] || <Shield size={18} />}
+              </ListItemIcon>
+              <ListItemText
+                primary={g.name}
+                slotProps={{
+                  primary: {
+                    fontSize: "0.92rem",
+                    fontWeight: selectedGuardrail.id === g.id ? 600 : 400,
+                    color: selectedGuardrail.id === g.id ? "primary.main" : "text.primary",
+                  },
                 }}
               />
             </ListItemButton>
@@ -501,7 +535,7 @@ const Dashboard: React.FC = () => {
                     }
                   }}
                   disabled={loading}
-                  InputProps={{ disableUnderline: true }}
+                  slotProps={{ input: { disableUnderline: true } }}
                   sx={{
                     px: 2,
                     pt: 1.5,
@@ -767,7 +801,7 @@ const Dashboard: React.FC = () => {
                       }
                     }}
                     disabled={loading}
-                    InputProps={{ disableUnderline: true }}
+                    slotProps={{ input: { disableUnderline: true } }}
                     sx={{
                       px: 2,
                       pt: 1.5,
