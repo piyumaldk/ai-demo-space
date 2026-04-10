@@ -16,10 +16,3 @@ body {
 #root {
   min-height: 100vh;
 }
-
-/* Prevent Google Sign-In button from injecting a white background container.
-   Targets Google's outer div structurally via our own stable wrapper — resilient
-   to Google's obfuscated class name changes across GSI bundle updates. */
-.google-signin-wrapper > div {
-  background: transparent !important;
-}
