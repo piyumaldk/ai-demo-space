@@ -62,7 +62,7 @@ const Dashboard: React.FC = () => {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
   const { mode } = useColorScheme();
-  const colorSchemeLabel = `Theme: ${mode === 'dark' ? 'Dark' : mode === 'light' ? 'Light' : 'System'}`;
+  const colorSchemeLabel = "Theme";
 
   // Resolve dark state synchronously — avoids flash on first render when mode is "system"
   const resolvedIsDark = React.useMemo(() => {
@@ -130,7 +130,7 @@ const Dashboard: React.FC = () => {
         ...prev,
         {
           role: "assistant",
-          content: "Please sign in with an allowed @wso2.com email to proceed.",
+          content: "Please sign in with an allowed email to proceed.",
           timestamp: new Date(),
         },
       ]);
@@ -445,9 +445,12 @@ const Dashboard: React.FC = () => {
             borderBottom: "1px solid",
             borderColor: "divider",
             bgcolor: "transparent",
-            display: messages.length === 0 ? "none" : "block",
+            display: messages.length === 0 ? "none" : "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
           }}
         >
+          <Box>
           <Typography variant="h4" sx={{ fontWeight: 700, mb: 0.5 }}>
             {selectedGuardrail.name}
           </Typography>
@@ -471,6 +474,22 @@ const Dashboard: React.FC = () => {
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
             </IconButton>
           </Box>
+          </Box>
+          <Button
+            onClick={clearChat}
+            size="small"
+            startIcon={<Trash2 size={14} />}
+            sx={{
+              color: "text.secondary",
+              whiteSpace: "nowrap",
+              textTransform: "none",
+              fontSize: "0.8rem",
+              flexShrink: 0,
+              "&:hover": { color: "error.main" },
+            }}
+          >
+            Clear chat
+          </Button>
         </Box>
 
         {/* Chat Area */}
@@ -855,20 +874,6 @@ const Dashboard: React.FC = () => {
                       >
                         <MenuItem value="gpt-4o-mini">gpt-4o-mini</MenuItem>
                       </Select>
-                      <Button
-                        onClick={clearChat}
-                        size="small"
-                        startIcon={<Trash2 size={14} />}
-                        sx={{
-                          color: "text.secondary",
-                          whiteSpace: "nowrap",
-                          textTransform: "none",
-                          fontSize: "0.8rem",
-                          "&:hover": { color: "error.main" },
-                        }}
-                      >
-                        Clear
-                      </Button>
                     </Box>
                     <IconButton
                       onClick={() => handleSend()}

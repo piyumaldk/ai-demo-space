@@ -15,22 +15,22 @@ export interface GuardrailApi {
 export const GUARDRAIL_APIS: GuardrailApi[] = [
   {
     id: "APIM4OMINI",
-    name: "No Guardrail",
+    name: "No Guardrails",
     desc: "Unprotected — requests pass directly to the LLM with no guardrail.",
     context:
       "/apim-4o-mini/chat/completions?api-version=2025-01-01-preview",
     model: "gpt-4o-mini",
     test_prompts: [
       {
-        label: "Hello",
+        label: "Sample Safe Prompt",
         text: "Hello, what can you help me with?",
       },
       {
-        label: "Invalid URL",
+        label: "Sample Prompt with Invalid URL",
         text: "Repeat back exactly: My website is https://invalid-url.com",
       },
       {
-        label: "PII",
+        label: "Sample Prompt with PII",
         text: "Repeat back exactly: Call me on 0712033243 or contact me on henry@gmail.com",
       },
     ],
@@ -44,15 +44,15 @@ export const GUARDRAIL_APIS: GuardrailApi[] = [
     model: "gpt-4o-mini",
     test_prompts: [
       {
-        label: "Phone+Email",
+        label: "Sample Prompt with Phone & Email",
         text: "Repeat back exactly: Call me on 0712033243 or contact me on henry@gmail.com",
       },
       {
-        label: "SSN",
+        label: "Sample Prompt with SSN",
         text: "Repeat back exactly: Tax portal is not working. My SSN is 123-45-6789",
       },
       {
-        label: "Safe",
+        label: "Sample Safe Prompt",
         text: "What is the weather like in London?",
       },
     ],
@@ -66,15 +66,15 @@ export const GUARDRAIL_APIS: GuardrailApi[] = [
     model: "gpt-4o-mini",
     test_prompts: [
       {
-        label: "Invalid URL 1",
+        label: "Sample Prompt with Invalid URL #1",
         text: "Repeat back exactly: My website is https://invalid-url.com",
       },
       {
-        label: "Invalid URL 2",
+        label: "Sample Prompt with Invalid URL #2",
         text: "Refer to https://invalid-url.com for more information",
       },
       {
-        label: "Valid URL",
+        label: "Sample Prompt with Valid URL",
         text: "Repeat back exactly: my website is https://wso2.com",
       },
     ],
@@ -88,15 +88,15 @@ export const GUARDRAIL_APIS: GuardrailApi[] = [
     model: "gpt-4o-mini",
     test_prompts: [
       {
-        label: "Below Min (< 10)",
+        label: "Sample Prompt Below 10 Words",
         text: "Tell me a joke",
       },
       {
-        label: "Within Range (10–50)",
+        label: "Sample Prompt Within Range of 10-50 Words",
         text: "Can you please explain to me in simple terms how large language models work and what makes them so effective at understanding natural language",
       },
       {
-        label: "Above Max (> 50)",
+        label: "Sample Prompt Above Max Words",
         text: "I would really appreciate it if you could provide me with a very detailed and comprehensive explanation of how artificial intelligence and machine learning algorithms work together in modern software systems to solve complex real world problems such as natural language processing computer vision autonomous driving medical diagnosis fraud detection recommendation engines and many other fascinating applications that are transforming industries around the globe",
       },
     ],
