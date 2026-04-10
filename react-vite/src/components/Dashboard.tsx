@@ -22,7 +22,6 @@ import {
   Menu,
   Avatar,
   ColorSchemeToggle,
-  useColorScheme,
 } from "@wso2/oxygen-ui";
 import {
   Send,
@@ -62,15 +61,7 @@ const Dashboard: React.FC = () => {
   const googleButtonRef = useRef<HTMLDivElement>(null);
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
-  const { mode } = useColorScheme();
   const colorSchemeLabel = "Theme";
-
-  // Resolve dark state synchronously — avoids flash on first render when mode is "system"
-  const resolvedIsDark = React.useMemo(() => {
-    if (mode === 'dark') return true;
-    if (mode === 'light') return false;
-    return typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches;
-  }, [mode]);
   const [gatewayConnected, setGatewayConnected] = useState(false);
   const [model, setModel] = useState("gpt-4o-mini");
   const [selectedGuardrail, setSelectedGuardrail] = useState<GuardrailApi>(
