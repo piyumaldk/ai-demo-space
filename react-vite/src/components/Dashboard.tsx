@@ -39,6 +39,7 @@ import { GUARDRAIL_APIS } from "../config/guardrails";
 import type { GuardrailApi } from "../config/guardrails";
 import { sendChat, checkGatewayStatus } from "../api/client";
 import type { ChatMessage } from "../api/client";
+import { getCopyrightText } from "../utils/copyright";
 
 const DRAWER_WIDTH = 280;
 
@@ -862,6 +863,23 @@ const Dashboard: React.FC = () => {
               </Box>
             </>
           )}
+        </Box>
+
+        {/* Footer */}
+        <Box
+          component="footer"
+          sx={{
+            px: 3,
+            py: 1,
+            borderTop: "1px solid",
+            borderColor: "divider",
+            display: "flex",
+            justifyContent: "center",
+          }}
+        >
+          <Typography variant="caption" sx={{ color: "text.secondary", fontSize: "0.75rem" }}>
+            {getCopyrightText()}
+          </Typography>
         </Box>
       </Box>
     </Box>

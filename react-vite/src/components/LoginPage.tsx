@@ -23,6 +23,7 @@ import {
 } from "@wso2/oxygen-ui-icons-react";
 import { useAuth } from "../auth/AuthContext";
 import { verifyAuth } from "../api/client";
+import { getCopyrightText } from "../utils/copyright";
 import loginImage from "../assets/login.svg";
 import loginImageInverted from "../assets/login-inverted.svg";
 import logoLight from "../assets/ai-demo-space-logo-inverted.svg";
@@ -343,7 +344,7 @@ const LoginPage: React.FC = () => {
               {/* Footer */}
               <Box component="footer" sx={{ mt: 8 }}>
                 <Typography sx={{ textAlign: "center", color: "text.secondary", fontSize: "0.85rem" }}>
-                  © Copyright {new Date().getFullYear()} WSO2 LLC. All Rights Reserved.
+                  {getCopyrightText()}
                 </Typography>
               </Box>
             </Box>
