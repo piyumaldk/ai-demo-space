@@ -23,6 +23,8 @@ import {
 import { useAuth } from "../auth/AuthContext";
 import loginImage from "../assets/login.svg";
 import loginImageInverted from "../assets/login-inverted.svg";
+import logoLight from "../assets/ai-demo-space-logo-inverted.svg";
+import logoDark from "../assets/ai-demo-space-logo.svg";
 
 const LoginPage: React.FC = () => {
   const theme = useTheme();
@@ -101,29 +103,25 @@ const LoginPage: React.FC = () => {
               maxWidth={580}
               display={{ xs: "none", md: "flex" }}
             >
-              {/* Logo / brand name */}
+              {/* Logo */}
               <Box sx={{ my: 1 }}>
-                <Typography
-                  variant="h5"
-                  sx={{
-                    fontWeight: 800,
-                    letterSpacing: "-0.5px",
-                    color: "text.primary",
+                <ColorSchemeImage
+                  src={{
+                    light: logoLight,
+                    dark: logoDark,
                   }}
-                >
-                  WSO2 AI DEMO
-                </Typography>
-                <Typography
-                  variant="caption"
-                  sx={{ color: "text.secondary", fontSize: "0.85rem" }}
-                >
-                  Tryout Console
-                </Typography>
+                  alt={{
+                    light: "AI Demo Space Logo (Light)",
+                    dark: "AI Demo Space Logo (Dark)",
+                  }}
+                  height={84}
+                  width="auto"
+                />
               </Box>
 
               {/* Main headline */}
               <Typography variant="h3" sx={{ fontWeight: "bold", mb: 0 }}>
-                AI Gateway Demo for Testing Guardrails and Policies
+                AI Gateway Demo Space for Testing Guardrails
               </Typography>
 
               <Typography variant="body1" sx={{ color: "text.secondary" }}>
@@ -196,10 +194,10 @@ const LoginPage: React.FC = () => {
               {/* Sign-in heading */}
               <Box sx={{ mb: 10 }}>
                 <Typography variant="h3" gutterBottom>
-                  Sign in to WSO2 AI Demo
+                  Sign in to WSO2 AI Demo Space
                 </Typography>
                 <Typography color="text.secondary">
-                  Use your authorized Google account to access the demo console
+                  Use your WSO2 Google account, or a Google account authorized by the WSO2 team, to access the demo console.
                 </Typography>
               </Box>
 
