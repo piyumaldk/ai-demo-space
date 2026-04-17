@@ -34,7 +34,7 @@ uvicorn main:app --reload --host 0.0.0.0 --port 8000
 
 ```bash
 cd react-vite
-npm ci --legacy-peer-deps
+npm ci
 
 # Start the dev server (listens on http://localhost:5173)
 npm run dev
