@@ -1,6 +1,7 @@
-import React, { useRef } from "react";
+import React, { useRef, useState } from "react";
 import {
   Box,
+  CircularProgress,
   ColorSchemeImage,
   ColorSchemeToggle,
   Grid,
@@ -21,6 +22,7 @@ import {
   Bot,
 } from "@wso2/oxygen-ui-icons-react";
 import { useAuth } from "../auth/AuthContext";
+import { verifyAuth } from "../api/client";
 import loginImage from "../assets/login.svg";
 import loginImageInverted from "../assets/login-inverted.svg";
 import logoLight from "../assets/ai-demo-space-logo-inverted.svg";
@@ -31,6 +33,8 @@ const LoginPage: React.FC = () => {
   const isDark = theme.palette.mode === "dark";
   const googleButtonRef = useRef<HTMLDivElement>(null);
   const { signIn: authSignIn } = useAuth();
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
 
   function decodeJwtPayload(credential: string): Record<string, string> {
     try {
@@ -41,19 +45,30 @@ const LoginPage: React.FC = () => {
     }
   }
 
-  function handleGoogleSuccess(credentialResponse: CredentialResponse) {
+  async function handleGoogleSuccess(credentialResponse: CredentialResponse) {
     if (!credentialResponse.credential) return;
-    const payload = decodeJwtPayload(credentialResponse.credential);
-    const expiresIn = payload.exp
-      ? Number(payload.exp) - Math.floor(Date.now() / 1000)
-      : 3600;
-    authSignIn(
-      payload.email,
-      payload.name,
-      payload.picture,
-      credentialResponse.credential,
-      expiresIn
-    );
+    setAuthError(null);
+    setIsVerifying(true);
+    try {
+      const result = await verifyAuth(credentialResponse.credential);
+      if (!result.authorized) {
+        setAuthError(result.reason ?? "Your account is not authorized.");
+        return;
+      }
+      const payload = decodeJwtPayload(credentialResponse.credential);
+      const expiresIn = payload.exp
+        ? Number(payload.exp) - Math.floor(Date.now() / 1000)
+        : 3600;
+      authSignIn(
+        payload.email,
+        payload.name,
+        payload.picture,
+        credentialResponse.credential,
+        expiresIn
+      );
+    } finally {
+      setIsVerifying(false);
+    }
   }
 
   const sloganItems = [
@@ -201,12 +216,51 @@ const LoginPage: React.FC = () => {
                 </Typography>
               </Box>
 
+              {/* Error alert */}
+              {authError && (
+                <Box
+                  sx={{
+                    mb: 3,
+                    px: 2,
+                    py: 1.5,
+                    borderRadius: 1.5,
+                    bgcolor: alpha(theme.palette.error.main, isDark ? 0.12 : 0.08),
+                    border: "1px solid",
+                    borderColor: alpha(theme.palette.error.main, isDark ? 0.35 : 0.25),
+                    display: "flex",
+                    alignItems: "flex-start",
+                    gap: 1,
+                  }}
+                >
+                  <Box
+                    sx={{
+                      width: 18,
+                      height: 18,
+                      flexShrink: 0,
+                      mt: "1px",
+                      color: "error.main",
+                    }}
+                  >
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="18" height="18">
+                      <circle cx="12" cy="12" r="10"/>
+                      <line x1="12" y1="8" x2="12" y2="12"/>
+                      <line x1="12" y1="16" x2="12.01" y2="16"/>
+                    </svg>
+                  </Box>
+                  <Typography variant="body2" sx={{ color: "error.main", lineHeight: 1.5 }}>
+                    {authError}
+                  </Typography>
+                </Box>
+              )}
+
               {/* Google sign-in button (our existing implementation) */}
               <Box display="flex" flexDirection="column" gap={3}>
                 <Box sx={{ position: "relative" }}>
                   <Box
                     component="button"
                     onClick={() => {
+                      if (isVerifying) return;
+                      setAuthError(null);
                       const btn = googleButtonRef.current?.querySelector<HTMLElement>(
                         "div[role=button]"
                       );
@@ -230,12 +284,16 @@ const LoginPage: React.FC = () => {
                       fontSize: "0.95rem",
                       fontWeight: 500,
                       transition: "all 0.15s",
+                      opacity: isVerifying ? 0.6 : 1,
                       "&:hover": {
-                        borderColor: isDark ? alpha("#fff", 0.4) : "text.secondary",
-                        bgcolor: isDark ? alpha("#fff", 0.08) : "action.hover",
+                        borderColor: isVerifying ? (isDark ? alpha("#fff", 0.2) : "divider") : (isDark ? alpha("#fff", 0.4) : "text.secondary"),
+                        bgcolor: isVerifying ? (isDark ? alpha("#fff", 0.05) : "background.paper") : (isDark ? alpha("#fff", 0.08) : "action.hover"),
                       },
                     }}
                   >
+                    {isVerifying ? (
+                      <CircularProgress size={18} sx={{ color: "text.secondary" }} />
+                    ) : (
                     <svg
                       width="18"
                       height="18"
@@ -259,7 +317,8 @@ const LoginPage: React.FC = () => {
                         fill="#EA4335"
                       />
                     </svg>
-                    Continue with Google
+                    )}
+                    {isVerifying ? "Verifying your account…" : "Continue with Google"}
                   </Box>
 
                   {/* Hidden Google OAuth component */}

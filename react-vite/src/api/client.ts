@@ -10,6 +10,44 @@ export interface ChatResponse {
   content: string;
 }
 
+export interface VerifyAuthResult {
+  authorized: boolean;
+  email: string;
+  reason?: string;
+}
+
+export async function verifyAuth(token: string): Promise<VerifyAuthResult> {
+  try {
+    const res = await fetch(`${BFF_BASE}/api/verify-auth`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (res.status === 401) {
+      return { authorized: false, email: "", reason: "Your session is invalid. Please try signing in again." };
+    }
+    if (res.status === 403) {
+      const data = await res.json();
+      return { authorized: false, email: "", reason: data.detail ?? "Your account is not authorized to access this demo." };
+    }
+    if (!res.ok) {
+      return { authorized: false, email: "", reason: "Unable to verify your account. Please try again." };
+    }
+    const data = await res.json();
+    return { authorized: true, email: data.email };
+  } catch {
+    return { authorized: false, email: "", reason: "Could not reach the server. Please check your connection and try again." };
+  }
+}
+
+export interface ChatMessage {
+  role: "user" | "assistant" | "system";
+  content: string;
+}
+
+export interface ChatResponse {
+  error: boolean;
+  content: string;
+}
+
 export async function sendChat(
   apiKeyId: string,
   context: string,

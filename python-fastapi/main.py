@@ -52,6 +52,19 @@ async def health():
     return {"status": "ok"}
 
 
+@app.get("/api/verify-auth")
+async def verify_auth(request: Request):
+    """Verify a Google ID token and check if the account is authorized."""
+    email = get_verified_email(request)
+    if not is_email_allowed(email):
+        raise HTTPException(
+            status_code=403,
+            detail=f"Your account ({email}) is not authorized. "
+            "Only @wso2.com emails or pre-approved addresses are allowed.",
+        )
+    return {"email": email, "authorized": True}
+
+
 @app.get("/api/gateway-status")
 async def gateway_status():
     try:
