@@ -42,14 +42,6 @@ npm run dev
 
 The app will be available at `http://localhost:5173`.
 
-## Configurations
-
-Override this by setting the environment variable before starting to change backend URL
-
-```bash
-VITE_BFF_URL=http://localhost:8000 npm run dev
-```
-
 ---
 
 ## Docker
@@ -105,3 +97,43 @@ services:
 
 ---
 
+## Choreo Deployment
+
+Deploy both Service and WebApp and Docker Builds. 
+
+### React WebApp
+
+As Mount: Environment Variables, add below
+
+```
+VITE_BFF_URL = <Url of backend for frontend>
+VITE_GOOGLE_CLIENT_ID = <Client ID for simple google SSO>
+```
+
+### Python Service
+
+/app/allowed_mails.py (File Mount)
+```python
+# Add specific email addresses that should be allowed
+# in addition to any @wso2.com address.
+ALLOWED_EMAILS: list[str] = [
+    # "someone@example.com",
+]
+```
+
+/app/keys.py (File Mount) (Secret)
+```python
+API_KEYS: dict[str, str] = {
+    "APIM4OMINI": "<key>",
+    "APIM4OMINIPIIMASKINGREGEX": "<key>",
+    "APIM4OMINIURLGUARDRAIL": "<key>",
+    "APIM4OMINIWORDCOUNTGUARDRAIL": "<key>",
+}
+```
+
+/app/config.py (File Mount)
+```python
+GATEWAY_URL = "<Gateway:8443>"
+SSL_VERIFY = False
+GOOGLE_CLIENT_ID = "<Client ID for simple google SSO>"
+```
