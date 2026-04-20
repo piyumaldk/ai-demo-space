@@ -1,33 +1,53 @@
 import json
 import logging
+from datetime import datetime, timezone, timedelta
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import httpx
 
-from config import GATEWAY_URL, SSL_VERIFY
+from config import GATEWAY_URL, SSL_VERIFY, DEBUG
 from keys import API_KEYS
 from interceptor_config import get_interceptor
-from auth.auth import get_verified_email, is_email_allowed
+from auth.auth import get_token_claims, is_email_allowed
 
-logging.basicConfig(
-    level=logging.DEBUG,
-    format="%(asctime)s  %(levelname)-7s  %(message)s",
+# Custom log level: EVENT (25) — between INFO and WARNING
+EVENT_LEVEL = 25
+logging.addLevelName(EVENT_LEVEL, "EVENT")
+
+def event(self: logging.Logger, message: str, *args, **kwargs) -> None:
+    if self.isEnabledFor(EVENT_LEVEL):
+        self._log(EVENT_LEVEL, message, args, **kwargs)
+
+logging.Logger.event = event  # type: ignore[attr-defined]
+
+_SL_TZ = timezone(timedelta(hours=5, minutes=30))
+
+class _SLTFormatter(logging.Formatter):
+    def formatTime(self, record: logging.LogRecord, datefmt: str | None = None) -> str:
+        dt = datetime.fromtimestamp(record.created, tz=_SL_TZ)
+        return dt.strftime(datefmt or "%H:%M:%S")
+
+_formatter = _SLTFormatter(
+    fmt="%(asctime)s  %(levelname)-7s  %(message)s",
     datefmt="%H:%M:%S",
 )
+_handler = logging.StreamHandler()
+_handler.setFormatter(_formatter)
+
+logging.basicConfig(
+    level=logging.INFO if DEBUG else EVENT_LEVEL,
+    format="%(asctime)s  %(levelname)-7s  %(message)s",
+    datefmt="%H:%M:%S",
+    handlers=[_handler],
+)
+
+if not DEBUG:
+    for _name in ("uvicorn", "uvicorn.access", "uvicorn.error"):
+        logging.getLogger(_name).setLevel(logging.WARNING)
+
 logger = logging.getLogger(__name__)
-
-SEP = "-" * 60
-
-
-def _fmt(obj, max_chars: int = 2000) -> str:
-    """Pretty-print a dict/list as JSON, truncated to max_chars."""
-    try:
-        text = json.dumps(obj, indent=2, ensure_ascii=False)
-    except Exception:
-        text = str(obj)
-    return text if len(text) <= max_chars else text[:max_chars] + "  ...[truncated]"
 
 app = FastAPI(title="AI Gateway Demo BFF")
 
@@ -55,13 +75,16 @@ async def health():
 @app.get("/api/verify-auth")
 async def verify_auth(request: Request):
     """Verify a Google ID token and check if the account is authorized."""
-    email = get_verified_email(request)
+    sub, email = get_token_claims(request)
+    logger.event(f"{sub}: trying to log in")  # type: ignore[attr-defined]
     if not is_email_allowed(email):
+        logger.event(f"{sub}: unauthorized")  # type: ignore[attr-defined]
         raise HTTPException(
             status_code=403,
             detail=f"Your account ({email}) is not authorized. "
             "Only @wso2.com emails or pre-approved addresses are allowed.",
         )
+    logger.event(f"{sub}: successfully logged in")  # type: ignore[attr-defined]
     return {"email": email, "authorized": True}
 
 
@@ -77,22 +100,19 @@ async def gateway_status():
 
 @app.post("/api/chat")
 async def chat(req: ChatRequest, request: Request):
-    # ── 0. AUTH ─────────────────────────────────────────────────
-    email = get_verified_email(request)
+    sub, email = get_token_claims(request)
     if not is_email_allowed(email):
         return {
             "error": True,
             "content": f"Your email ({email}) is not authorized. "
             "Only @wso2.com emails or pre-approved addresses are allowed.",
         }
-    logger.debug(f"[0] AUTH OK — {email}")
 
-    # ── 1. INCOMING REQUEST (frontend → FastAPI) ──────────────────
-    logger.debug(SEP)
-    logger.debug("[1] INCOMING REQUEST  (frontend → FastAPI)")
-    logger.debug(f"    URL  : POST /api/chat")
-    logger.debug(f"    Body : {_fmt(req.model_dump(exclude={'api_key_id'}))}")
-
+    prompt = next(
+        (m.get("content", "") for m in reversed(req.messages) if m.get("role") == "user"),
+        "",
+    )
+    logger.event(f"{sub}: {req.context}: {prompt}")  # type: ignore[attr-defined]
     api_key = API_KEYS.get(req.api_key_id)
     if not api_key:
         logger.warning(f"Unknown API key ID: {req.api_key_id}")
@@ -101,11 +121,6 @@ async def chat(req: ChatRequest, request: Request):
     interceptor = get_interceptor(req.model)
     url = f"{GATEWAY_URL}{req.context}"
     body = interceptor.transform_request(req.messages)
-
-    # ── 2. OUTGOING REQUEST (FastAPI → backend) ────────────────────
-    logger.debug("[2] OUTGOING REQUEST  (FastAPI → backend)")
-    logger.debug(f"    URL  : POST {url}")
-    logger.debug(f"    Body : {_fmt(body)}")
 
     headers = {
         "X-API-KEY": api_key,
@@ -121,18 +136,7 @@ async def chat(req: ChatRequest, request: Request):
             except Exception:
                 raw = {"error": resp.text}
 
-            # ── 3. RESPONSE FROM BACKEND ───────────────────────────
-            logger.debug("[3] RESPONSE FROM BACKEND")
-            logger.debug(f"    Status : {resp.status_code}")
-            logger.debug(f"    Body   : {_fmt(raw)}")
-
             result = interceptor.transform_response(raw, resp.status_code)
-
-            # ── 4. RESPONSE TO FRONTEND ────────────────────────────
-            logger.debug("[4] RESPONSE TO FRONTEND")
-            logger.debug(f"    Status : 200")
-            logger.debug(f"    Body   : {_fmt(result)}")
-            logger.debug(SEP)
 
             return result
 

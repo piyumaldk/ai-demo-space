@@ -10,8 +10,8 @@ from allowed_mails import ALLOWED_EMAILS
 logger = logging.getLogger(__name__)
 
 
-def get_verified_email(request: Request) -> str:
-    """Verify a Google ID token locally and return the associated email."""
+def get_token_claims(request: Request) -> tuple[str, str]:
+    """Verify a Google ID token locally and return (sub, email)."""
     auth_header = request.headers.get("authorization", "")
     if not auth_header.startswith("Bearer "):
         raise HTTPException(
@@ -28,11 +28,12 @@ def get_verified_email(request: Request) -> str:
         logger.warning("Invalid Google ID token: %s", e)
         raise HTTPException(status_code=401, detail="Invalid or expired token")
 
+    sub: str = idinfo.get("sub", "")
     email: str = idinfo.get("email", "")
     if not email:
         raise HTTPException(status_code=401, detail="No email claim in token")
 
-    return email
+    return sub, email
 
 
 def is_email_allowed(email: str) -> bool:

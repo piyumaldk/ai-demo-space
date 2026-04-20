@@ -134,6 +134,30 @@ API_KEYS: dict[str, str] = {
 /app/config.py (File Mount)
 ```python
 GATEWAY_URL = "<Gateway:8443>"
-SSL_VERIFY = False
+SSL_VERIFY = "./gateway-ca.pem" 
 GOOGLE_CLIENT_ID = "<Client ID for simple google SSO>"
+DEBUG = True (Show additional logs)
+```
+
+### AI Gateway Deployment (In Azure VM)
+
+1. Add exposing IP to Gateway cert
+```shell
+openssl req -x509 -nodes \
+  -key resources/listener-certs/default-listener.key \
+  -days 3650 \
+  -subj "/C=US/ST=California/L=San Francisco/O=WSO2/OU=API Gateway/CN=localhost" \
+  -addext "subjectAltName=DNS:localhost,DNS:*.localhost,IP:127.0.0.1,IP:<NEW IP>" \
+  -out resources/listener-certs/default-listener.crt
+```
+
+2. Run or Rerun AI Gateway
+```shell
+docker compose down && docker compose up -d
+```
+
+3. Add PEM to SSL_VERIFY Location
+```shell
+openssl s_client -connect <ai-gateway-ip>:8443 -showcerts </dev/null 2>/dev/null \
+  | openssl x509 -outform PEM > <python-fastapi-location>/gateway-ca.pem
 ```
