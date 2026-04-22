@@ -27,11 +27,11 @@ _SL_TZ = timezone(timedelta(hours=5, minutes=30))
 class _SLTFormatter(logging.Formatter):
     def formatTime(self, record: logging.LogRecord, datefmt: str | None = None) -> str:
         dt = datetime.fromtimestamp(record.created, tz=_SL_TZ)
-        return dt.strftime(datefmt or "%H:%M:%S")
+        return dt.strftime(datefmt or "%Y-%m-%d %H:%M:%S")
 
 _formatter = _SLTFormatter(
     fmt="%(asctime)s  %(levelname)-7s  %(message)s",
-    datefmt="%H:%M:%S",
+    datefmt="%Y-%m-%d %H:%M:%S",
 )
 _handler = logging.StreamHandler()
 _handler.setFormatter(_formatter)
@@ -39,7 +39,7 @@ _handler.setFormatter(_formatter)
 logging.basicConfig(
     level=logging.INFO if DEBUG else EVENT_LEVEL,
     format="%(asctime)s  %(levelname)-7s  %(message)s",
-    datefmt="%H:%M:%S",
+    datefmt="%Y-%m-%d %H:%M:%S",
     handlers=[_handler],
 )
 

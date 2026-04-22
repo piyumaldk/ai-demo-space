@@ -153,7 +153,7 @@ openssl req -x509 -nodes \
 
 2. Run or Rerun AI Gateway
 ```shell
-docker compose down && docker compose up -d
+docker compose down && docker compose --env-file configs/keys.env up -d
 ```
 
 3. Add PEM to SSL_VERIFY Location
